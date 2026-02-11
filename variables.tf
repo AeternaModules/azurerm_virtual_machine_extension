@@ -28,7 +28,7 @@ EOT
     virtual_machine_id          = string
     auto_upgrade_minor_version  = optional(bool)
     automatic_upgrade_enabled   = optional(bool)
-    failure_suppression_enabled = optional(bool, false)
+    failure_suppression_enabled = optional(bool) # Default: false
     protected_settings          = optional(string)
     provision_after_extensions  = optional(list(string))
     settings                    = optional(string)
