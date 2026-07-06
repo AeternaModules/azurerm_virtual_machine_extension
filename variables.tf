@@ -38,5 +38,41 @@ EOT
       source_vault_id = string
     }))
   }))
+  validation {
+    condition = alltrue([
+      for k, v in var.virtual_machine_extensions : (
+        v.provision_after_extensions == null || (length(v.provision_after_extensions) > 0)
+      )
+    ])
+    error_message = "must not be empty"
+  }
+  # --- Unconfirmed validation candidates, derived from azurerm_virtual_machine_extension's provider source ---
+  # Not auto-enabled: either a bespoke provider validator we can't safely translate,
+  # or a path that crosses a list-typed block (needs its own for_each wrapping).
+  # Review, translate into a real validation{} block above, and delete once confirmed.
+  # path: name
+  #   source:    validation.All(...) - no translation rule yet, add one
+  # path: virtual_machine_id
+  #   source:    [from commonids.ValidateVirtualMachineID] !ok
+  # path: virtual_machine_id
+  #   source:    [from commonids.ValidateVirtualMachineID] err != nil
+  # path: settings
+  #   source:    validation.StringIsJSON(...) - no translation rule yet, add one
+  # path: protected_settings
+  #   source:    validation.StringIsJSON(...) - no translation rule yet, add one
+  # path: tags
+  #   condition: length(value) <= 50
+  #   message:   [from tags.Validate: invalid when len(value) > 50]
+  #   source:    [from tags.Validate: invalid when len(value) > 50]
+  # path: tags
+  #   condition: length(value) <= 512
+  #   message:   [from tags.Validate: invalid when len(value) > 512]
+  #   source:    [from tags.Validate: invalid when len(value) > 512]
+  # path: tags
+  #   source:    [from tags.Validate] err != nil
+  # path: tags
+  #   condition: length(value) <= 256
+  #   message:   [from tags.Validate: invalid when len(value) > 256]
+  #   source:    [from tags.Validate: invalid when len(value) > 256]
 }
 
