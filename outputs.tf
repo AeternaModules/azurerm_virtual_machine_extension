@@ -1,3 +1,7 @@
+output "virtual_machine_extensions_id" {
+  description = "Map of id values across all virtual_machine_extensions, keyed the same as var.virtual_machine_extensions"
+  value       = { for k, v in azurerm_virtual_machine_extension.virtual_machine_extensions : k => v.id }
+}
 output "virtual_machine_extensions_auto_upgrade_minor_version" {
   description = "Map of auto_upgrade_minor_version values across all virtual_machine_extensions, keyed the same as var.virtual_machine_extensions"
   value       = { for k, v in azurerm_virtual_machine_extension.virtual_machine_extensions : k => v.auto_upgrade_minor_version }
