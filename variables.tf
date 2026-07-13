@@ -30,7 +30,7 @@ EOT
     virtual_machine_id                       = string
     auto_upgrade_minor_version               = optional(bool)
     automatic_upgrade_enabled                = optional(bool)
-    failure_suppression_enabled              = optional(bool) # Default: false
+    failure_suppression_enabled              = optional(bool)
     protected_settings                       = optional(string)
     protected_settings_key_vault_id          = optional(string)
     protected_settings_key_vault_secret_name = optional(string)
@@ -42,14 +42,6 @@ EOT
       source_vault_id = string
     }))
   }))
-  validation {
-    condition = alltrue([
-      for k, v in var.virtual_machine_extensions : (
-        v.provision_after_extensions == null || (length(v.provision_after_extensions) > 0)
-      )
-    ])
-    error_message = "must not be empty"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_virtual_machine_extension's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
@@ -64,6 +56,9 @@ EOT
   #   source:    validation.StringIsJSON(...) - no translation rule yet, add one
   # path: protected_settings
   #   source:    validation.StringIsJSON(...) - no translation rule yet, add one
+  # path: provision_after_extensions[*]
+  #   condition: length(value) > 0
+  #   message:   must not be empty
   # path: tags
   #   condition: length(value) <= 50
   #   message:   [from tags.Validate: invalid when len(value) > 50]
