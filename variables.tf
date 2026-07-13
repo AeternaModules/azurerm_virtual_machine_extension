@@ -42,36 +42,38 @@ EOT
       source_vault_id = string
     }))
   }))
-  # --- Unconfirmed validation candidates, derived from azurerm_virtual_machine_extension's provider source ---
-  # Not auto-enabled: either a bespoke provider validator we can't safely translate,
-  # or a path that crosses a list-typed block (needs its own for_each wrapping).
-  # Review, translate into a real validation{} block above, and delete once confirmed.
-  # path: name
-  #   source:    validation.All(...) - no translation rule yet, add one
-  # path: virtual_machine_id
-  #   source:    [from commonids.ValidateVirtualMachineID] !ok
-  # path: virtual_machine_id
-  #   source:    [from commonids.ValidateVirtualMachineID] err != nil
-  # path: settings
-  #   source:    validation.StringIsJSON(...) - no translation rule yet, add one
-  # path: protected_settings
-  #   source:    validation.StringIsJSON(...) - no translation rule yet, add one
-  # path: provision_after_extensions[*]
-  #   condition: length(value) > 0
-  #   message:   must not be empty
-  # path: tags
-  #   condition: length(value) <= 50
-  #   message:   [from tags.Validate: invalid when len(value) > 50]
-  #   source:    [from tags.Validate: invalid when len(value) > 50]
-  # path: tags
-  #   condition: length(value) <= 512
-  #   message:   [from tags.Validate: invalid when len(value) > 512]
-  #   source:    [from tags.Validate: invalid when len(value) > 512]
-  # path: tags
-  #   source:    [from tags.Validate] err != nil
-  # path: tags
-  #   condition: length(value) <= 256
-  #   message:   [from tags.Validate: invalid when len(value) > 256]
-  #   source:    [from tags.Validate: invalid when len(value) > 256]
+  validation {
+    condition = alltrue([
+      for k, v in var.virtual_machine_extensions : (
+        v.settings == null || (can(jsondecode(v.settings)))
+      )
+    ])
+    error_message = "must be valid JSON"
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.virtual_machine_extensions : (
+        v.protected_settings == null || (can(jsondecode(v.protected_settings)))
+      )
+    ])
+    error_message = "must be valid JSON"
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.virtual_machine_extensions : (
+        v.provision_after_extensions == null || (alltrue([for x in v.provision_after_extensions : length(x) > 0]))
+      )
+    ])
+    error_message = "must not be empty"
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.virtual_machine_extensions : (
+        v.tags == null || (length(v.tags) <= 50)
+      )
+    ])
+    error_message = "[from tags.Validate: invalid when len(value) > 50]"
+  }
+  # Note: 6 additional provider-side validators are enforced at apply time but not mirrored as validation{} blocks here (bespoke or non-mechanically-translatable).
 }
 
